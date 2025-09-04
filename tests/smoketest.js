@@ -8,7 +8,7 @@ export let options = {
 
 export default function () {
   // base url diambil dari env, misalnya BASE_URL=http://localhost:3000
-  const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+  const BASE_URL = 'http://localhost:3000';
 
   // 1️⃣ Test GET notes
   let res = http.get(`${BASE_URL}/api/notes`);
