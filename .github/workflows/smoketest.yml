@@ -2,7 +2,7 @@ name: k6 Smoke Test
 
 on:
   workflow_run:
-    workflows: ["Unit Test"]
+    workflows: ["SonarQube Test"]
     types:
       - completed
       - success

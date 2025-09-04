@@ -2,7 +2,7 @@ name: Unit Test
 
 on:
   workflow_run:
-    workflows: ["ESLint Check"]   # hanya jalan setelah workflow Lint selesai
+    workflows: ["ESLint Check"]
     types:
       - completed
       - success
