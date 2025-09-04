@@ -2,6 +2,9 @@
 import http from 'k6/http';
 import { sleep, check } from 'k6';
 
+/* global __ENV */
+
+
 export const options = {
   stages: [
     { duration: '30s', target: 20 },
