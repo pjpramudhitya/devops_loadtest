@@ -1,0 +1,43 @@
+name: k6 Smoke Test
+
+on:
+  workflow_run:
+    workflows: ["Unit Test"]
+    types:
+      - completed
+      - success
+
+jobs:
+  k6-smoke-test:
+    name: k6 Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Start Application
+        run: |
+          nohup npm start &
+          sleep 5
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg software-properties-common
+          sudo gpg -k
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - name: Run k6 Smoke Test
+        run: |
+          k6 run tests/k6/smoke-test.js --out json=smoke-result.json
+      - name: Upload k6 Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-result
+          path: smoke-result.json
