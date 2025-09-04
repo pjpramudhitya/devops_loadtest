@@ -1,4 +1,4 @@
-name: CI Notes App
+name: CI Load Test
 
 on:
   push:
