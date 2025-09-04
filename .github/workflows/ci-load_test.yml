@@ -3,36 +3,50 @@ name: CI Load Test
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm install
-      - run: npm run lint
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
 
   test:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm install
-      - run: npm test -- --coverage
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Unit Tests (Jest)
+        run: npm test -- --coverage
 
   sonarqube:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v1.2.0
         env:
@@ -42,36 +56,14 @@ jobs:
   k6:
     runs-on: ubuntu-latest
     needs: test
-    services:
-      docker:
-        image: docker:20.10.24-dind
-        privileged: true
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Install Docker Compose
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
-      # Build & run containers
-      - name: Start services with Docker Compose
-        run: |
-          docker-compose up -d
-          sleep 10   # tunggu app siap
-
-      # Install k6
       - name: Install k6
         run: |
           sudo apt-get update
           sudo apt-get install -y k6
 
-      # Run k6 Smoke Test
       - name: Run k6 Smoke Test
         run: k6 run tests/smoke-test.js
-
-      # Stop containers
-      - name: Stop Docker Compose
-        if: always()
-        run: docker-compose down
