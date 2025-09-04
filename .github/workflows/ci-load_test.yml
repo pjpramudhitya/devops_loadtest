@@ -1,24 +1,23 @@
-name: CI Load Test
+name: CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-
       - name: Install dependencies
-        run: npm install
-
+        run: npm ci
       - name: Run ESLint
         run: npm run lint
 
@@ -26,44 +25,38 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-
       - name: Install dependencies
-        run: npm install
-
-      - name: Run Unit Tests (Jest)
-        run: npm test -- --coverage
+        run: npm ci
+      - name: Run Unit Tests
+        run: npm run test -- --coverage
 
   sonarqube:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
-
       - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v1.2.0
+        uses: SonarSource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  k6:
+  k6-smoke-test:
     runs-on: ubuntu-latest
-    needs: test
+    needs: sonarqube
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install k6
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y k6
-
-      - name: Run k6 Smoke Test
-        run: k6 run tests/smoke-test.js
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+      - name: Run k6 smoke test
+        run: k6 run loadtest/script.js
