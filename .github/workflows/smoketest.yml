@@ -35,7 +35,7 @@ jobs:
           sudo apt-get install -y k6
       - name: Run k6 Smoke Test
         run: |
-          k6 run tests/k6/smoke-test.js --out json=smoke-result.json
+          k6 run tests/smoketest.js --out json=smoke-result.json
       - name: Upload k6 Result
         uses: actions/upload-artifact@v4
         with:
